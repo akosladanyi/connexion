@@ -235,13 +235,17 @@ class FlaskApi(AbstractAPI):
         context_dict = {}
         setattr(flask._request_ctx_stack.top, 'connexion_context', context_dict)
         flask_request = flask.request
+        content_type = flask_request.headers.get('Content-Type')
+        body = (flask_request.stream
+                if content_type == 'application/octet-stream'
+                else flask_request.get_data())
         request = ConnexionRequest(
             flask_request.url,
             flask_request.method,
             headers=flask_request.headers,
             form=flask_request.form,
             query=flask_request.args,
-            body=flask_request.get_data(),
+            body=body,
             json_getter=lambda: flask_request.get_json(silent=True),
             files=flask_request.files,
             path_params=params,
